@@ -48,10 +48,16 @@ public class MyOSC : MonoBehaviour
         }
 
         Debug.Log("Volume: " + value);
-        float lightMath = Mathf.Lerp(0f, 5f, value / 1000f);
+        float lightMath = Mathf.Lerp(0.0010f, 0.0030f, Mathf.InverseLerp(0f, 200f, value));
+        float leavesMath = Mathf.Lerp(0f, 12f, Mathf.InverseLerp(0f, 200f, value));
+        int branchesMath = Mathf.RoundToInt(Mathf.Lerp(0f, 5f, Mathf.InverseLerp(0f, 200f, value)));
+        float leavesOffMath = Mathf.Lerp(0f, 20f, Mathf.InverseLerp(0f, 200f, value));
 
-        treegenTreeGenerator.TreeNoiseForce = lightMath;
 
+        treegenTreeGenerator.transform.localScale = Vector3.one * lightMath;
+        treegenTreeGenerator.LeavesScale = Vector3.one * leavesMath;
+        treegenTreeGenerator.BranchSegments = branchesMath;
+        treegenTreeGenerator.LeavesOffset = leavesOffMath;
     }
 
     void MessageFrequance(OSCMessage oscMessage)
