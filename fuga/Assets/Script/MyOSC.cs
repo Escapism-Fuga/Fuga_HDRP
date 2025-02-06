@@ -15,24 +15,25 @@ public class MyOSC : MonoBehaviour
     private float currentLightMath = 0.0010f;
     private float velocityLight = 0f; // Vélocité pour SmoothDamp
 
+    
     private float targetLeavesMath = 0f;  // Valeur cible pour l'échelle des feuilles
     private float currentLeavesMath = 0f;
     private float velocityLeaves = 0f;
 
-    private int targetBranchesMath = 0;  // Valeur cible pour les branches
-    private int currentBranchesMath = 0;
-    private float velocityBranches = 0f;
-
     private float targetLeavesOffMath = 0f;  // Valeur cible pour l'offset des feuilles
     private float currentLeavesOffMath = 0f;
     private float velocityLeavesOff = 0f;
-
+    
     public float smoothTime = 0.2f; // Plus petit = plus rapide, plus grand = plus fluide
+
+    private bool arbreActif;
 
     void Start()
     {
-        oscReceiver.Bind("/vkb_midi/9/note/36", message => MessageVolume(message));
-        oscReceiver.Bind("/vkb_midi/9/note/40", message => MessageFrequance(message));
+        oscReceiver.Bind("/vkb_midi/9/note/38", message => MessageVolume(message));
+        oscReceiver.Bind("/vkb_midi/9/note/39", message => MessageFrequance(message));
+        arbreActif = true;
+        StartCoroutine("CoOsc");
     }
 
     void MessageVolume(OSCMessage oscMessage)
@@ -45,14 +46,15 @@ public class MyOSC : MonoBehaviour
             value = oscMessage.Values[0].FloatValue;
         else
             return;
-
+       
         Debug.Log("Volume: " + value);
 
         // Mettre à jour les valeurs cibles
-        targetLightMath = Mathf.Lerp(0.0010f, 0.0030f, Mathf.InverseLerp(0f, 200f, value));
-        targetLeavesMath = Mathf.Lerp(0f, 12f, Mathf.InverseLerp(0f, 200f, value));
-        targetBranchesMath = Mathf.RoundToInt(Mathf.Lerp(0f, 5f, Mathf.InverseLerp(0f, 200f, value)));
-        targetLeavesOffMath = Mathf.Lerp(0f, 20f, Mathf.InverseLerp(0f, 200f, value));
+        targetLightMath = Mathf.Lerp(0.0010f, 0.0030f, Mathf.InverseLerp(0f, 4095f, value));
+        targetLeavesMath = Mathf.Lerp(0f, 12f, Mathf.InverseLerp(0f, 4095f, value));
+
+        targetLeavesOffMath = Mathf.Lerp(5f, 20f, Mathf.InverseLerp(0f, 4095f, value));
+        
     }
 
     void MessageFrequance(OSCMessage oscMessage)
@@ -71,39 +73,53 @@ public class MyOSC : MonoBehaviour
         {
             return;
         }
-
+        
         Debug.Log("Volume: " + value);
 
-        // Applique un mappage linéaire pour obtenir la valeur du rouge
-        float red = Mathf.InverseLerp(0f, 200f, value);  // Mappe la valeur pour le rouge
-        float green = 0f;  // Laisse la composante verte à 0
-        float blue = 0f;   // Laisse la composante bleue à 0
-
-        // Crée une couleur avec uniquement du rouge
-        Color dynamicColor = new Color(red, green, blue);
-
-        // Change la couleur du matériau des feuilles (index 1)
-        Renderer renderer = arbreTest.GetComponent<Renderer>();
-        if (renderer != null)
-        {
-            Material materialLeafs = renderer.materials[1];  // Sélectionne le deuxième matériau (les feuilles)
-            materialLeafs.SetColor("_BaseColor", dynamicColor);  // Utilise _BaseColor pour modifier la couleur
-        }
     }
+
+    int counter;
+
     void Update()
     {
+        /// Utiliser Time.smoothDeltaTime pour un ajustement plus fluide en cas de chutes de framerate
+        float smoothDeltaTime = Time.smoothDeltaTime;
+
         // Lissage des valeurs
-        currentLightMath = Mathf.SmoothDamp(currentLightMath, targetLightMath, ref velocityLight, smoothTime);
-        currentLeavesMath = Mathf.SmoothDamp(currentLeavesMath, targetLeavesMath, ref velocityLeaves, smoothTime);
-        currentBranchesMath = Mathf.RoundToInt(Mathf.SmoothDamp(currentBranchesMath, targetBranchesMath, ref velocityBranches, smoothTime));
-        currentLeavesOffMath = Mathf.SmoothDamp(currentLeavesOffMath, targetLeavesOffMath, ref velocityLeavesOff, smoothTime);
+        currentLightMath = Mathf.SmoothDamp(currentLightMath, targetLightMath, ref velocityLight, smoothTime, Mathf.Infinity, smoothDeltaTime);
+        currentLeavesMath = Mathf.SmoothDamp(currentLeavesMath, targetLeavesMath, ref velocityLeaves, smoothTime, Mathf.Infinity, smoothDeltaTime);
+        currentLeavesOffMath = Mathf.SmoothDamp(currentLeavesOffMath, targetLeavesOffMath, ref velocityLeavesOff, smoothTime, Mathf.Infinity, smoothDeltaTime);
 
         // Appliquer les valeurs lissées
         treegenTreeGenerator.transform.localScale = new Vector3(currentLightMath, currentLightMath, currentLightMath);
         treegenTreeGenerator.LeavesScale = Vector3.one * currentLeavesMath;
-        treegenTreeGenerator.BranchSegments = currentBranchesMath;
         treegenTreeGenerator.LeavesOffset = currentLeavesOffMath;
 
-        treegenTreeGenerator.NewGen();
+        if ( counter > 2 )
+        {
+            treegenTreeGenerator.NewGen();
+            counter = 0;
+        }
+  
+
+        counter++;
     }
+
+
+    
+
+
+    public IEnumerator CoOsc()
+    {
+        while (arbreActif == true)
+        {
+         
+
+
+            yield return new WaitForSeconds(0.03f);
+        }
+
+    }
+
+
 }
