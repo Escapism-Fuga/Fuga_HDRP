@@ -4,6 +4,7 @@ using System;
 using UnityEngine;
 using extOSC;
 using Treegen;
+using UnityEngine.Rendering.HighDefinition;
 
 public class MyOSC : MonoBehaviour
 {
@@ -72,23 +73,9 @@ public class MyOSC : MonoBehaviour
             return;
         }
 
-        Debug.Log("Volume: " + value);
+        var material = new Material(Shader.Find("HDRP/Nature/SpeedTree8"));
 
-        // Applique un mappage linéaire pour obtenir la valeur du rouge
-        float red = Mathf.InverseLerp(0f, 200f, value);  // Mappe la valeur pour le rouge
-        float green = 0f;  // Laisse la composante verte à 0
-        float blue = 0f;   // Laisse la composante bleue à 0
-
-        // Crée une couleur avec uniquement du rouge
-        Color dynamicColor = new Color(red, green, blue);
-
-        // Change la couleur du matériau des feuilles (index 1)
-        Renderer renderer = arbreTest.GetComponent<Renderer>();
-        if (renderer != null)
-        {
-            Material materialLeafs = renderer.materials[1];  // Sélectionne le deuxième matériau (les feuilles)
-            materialLeafs.SetColor("_BaseColor", dynamicColor);  // Utilise _BaseColor pour modifier la couleur
-        }
+        material.SetColor("_ColorTint", new Color(0, 0, value));
     }
     void Update()
     {
