@@ -233,7 +233,7 @@ Material:
     - __dirty: 0
     m_Colors:
     - Diffusion_Profile_Asset: {r: 0, g: 0, b: 0, a: 0}
-    - _Color: {r: 0.055568215, g: 0.4490565, b: 0, a: 1}
+    - _Color: {r: 0.1428294, g: 0.5245282, b: 0, a: 1}
     - _Color1: {r: 0.1453444, g: 0.29411766, b: 0.05882353, a: 0.7372549}
     - _Color2: {r: 0.46371254, g: 0.6886792, b: 0.24363652, a: 0.9019608}
     - _DoubleSidedConstants: {r: -1, g: -1, b: -1, a: 0}
