@@ -22,6 +22,9 @@ public class BoidSimulator : MonoBehaviour
 
     private float MaxEnergy = 100f;
 
+    public float MinDiameter = 0.1f;
+        public float MaxDiameter = 1f;
+
     void Start()
     {
         InitializeSimulation();  // Initialize the simulation with one boid
@@ -57,7 +60,7 @@ public class BoidSimulator : MonoBehaviour
             // Each cylinder object is updated based on boid movement
         }
 
-        Debug.Log(boids.Count);
+        //Debug.Log(boids.Count);
     }
 
 
@@ -83,7 +86,7 @@ public class BoidSimulator : MonoBehaviour
         Vector3 offset = Random.insideUnitSphere * 0.01f;
         CreateBoid(boid.Position + offset, boid.Energy);
         boid.Energy -= 10f;
-        //boid.Velocity = Vector3.zero;
+        boid.Velocity = Vector3.zero;
     }
 
     // Method to update boid logic
@@ -146,9 +149,9 @@ public class BoidSimulator : MonoBehaviour
         boid.Position += boid.Velocity * Time.deltaTime;
         boid.Acceleration = Vector3.zero;
 
- 
+
         // Create a new boid by splitting (random chance)
-        if (Random.value < SplitChance)
+        if (Random.value < Mathf.Lerp(SplitChance, SplitChance * 0.1f, boid.Energy / MaxEnergy))
         {
             SplitBoid(boid);
             
@@ -173,19 +176,24 @@ public class BoidSimulator : MonoBehaviour
         // Store cylinder information and create cylinder prefab in Unity
         Vector3 direction = boid.Position - boid.PreviousPosition;
         float length = direction.magnitude;
-        direction.Normalize();
 
-        // Instantiate a cylinder at the boid's previous position
-        
-        GameObject newCylinder = Instantiate(cylinderPrefab, boid.PreviousPosition, Quaternion.identity);
-        float diameter = Mathf.Lerp(0.01f, 0.5f, boid.Energy / MaxEnergy);
-        newCylinder.transform.localScale = new Vector3(diameter, length/2.0f , diameter); // Scale based on length
-        newCylinder.transform.LookAt(boid.Position); // Point cylinder towards boid
-        newCylinder.transform.Rotate(new Vector3(90,0,0));
+        if ( length >= 0.05f)
+        {
+            direction.Normalize();
 
-        cylinderObjects.Add(newCylinder); // Store the cylinder object for future reference
-            
-        boid.PreviousPosition = boid.Position; // Update the previous position for next frame
+            // Instantiate a cylinder at the boid's previous position
+
+            GameObject newCylinder = Instantiate(cylinderPrefab, boid.PreviousPosition, Quaternion.identity);
+            float diameter = Mathf.Lerp(MinDiameter, MaxDiameter, boid.Energy / MaxEnergy);
+            newCylinder.transform.localScale = new Vector3(diameter, length * 2f, diameter); // Scale based on length
+            newCylinder.transform.LookAt(boid.Position); // Point cylinder towards boid
+            newCylinder.transform.Rotate(new Vector3(90, 0, 0));
+
+            cylinderObjects.Add(newCylinder); // Store the cylinder object for future reference
+
+            boid.PreviousPosition = boid.Position; // Update the previous position for next frame
+        }
+       
     }
 
     // Initialize simulation with a single boid
