@@ -1,19 +1,22 @@
 using UnityEngine;
 using System.Collections.Generic;
 using static BoidSimulator;
+using static UnityEditor.PlayerSettings;
 
 
 public class BoidSimulator : MonoBehaviour
 {
     public GameObject boidPrefab;  // Reference to the boid prefab (e.g., a sphere)
-    public GameObject cylinderPrefab; // Reference to the cylinder prefab (used for representing boid movement)
+    public GameObject branchPrefab; // Reference to the cylinder prefab (used for representing boid movement)
+    public GameObject leafPrefab;
     //public float wanderFactor = 0.2f; // Controls how much low-energy boids wander
 
     private List<Boid> boids = new List<Boid>();
     private List<GameObject> boidObjects = new List<GameObject>(); // To store boid prefab instances
     private List<GameObject> cylinderObjects = new List<GameObject>(); // To store cylinder prefab instances
+    private List<GameObject> leafObjects = new List<GameObject>(); // To store cylinder prefab instances
 
-   public float SplitChance = 0.002f;
+    public float SplitChance = 0.002f;
     public float  RepulsionRadius = 1f;
 
     public float wanderStrength = 0.5f;
@@ -24,6 +27,12 @@ public class BoidSimulator : MonoBehaviour
 
     public float MinDiameter = 0.1f;
         public float MaxDiameter = 1f;
+
+    public float SegmentLength = 0.05f;
+
+    public float LengthMultiplier = 1f;
+
+    public float LeafChance = 0.01f;
 
     void Start()
     {
@@ -151,7 +160,7 @@ public class BoidSimulator : MonoBehaviour
 
 
         // Create a new boid by splitting (random chance)
-        if (Random.value < Mathf.Lerp(SplitChance, SplitChance * 0.1f, boid.Energy / MaxEnergy))
+        if (Random.value < SplitChance)
         {
             SplitBoid(boid);
             
@@ -173,19 +182,30 @@ public class BoidSimulator : MonoBehaviour
         {
             return;
         }
+
+  
+        if (Random.value < LeafChance)
+        {
+           
+            GameObject leafInstance = Instantiate(leafPrefab, boid.Position, Random.rotation);
+            leafObjects.Add(leafInstance);  // Store boid prefab instances
+
+        }
+
+
         // Store cylinder information and create cylinder prefab in Unity
         Vector3 direction = boid.Position - boid.PreviousPosition;
         float length = direction.magnitude;
 
-        if ( length >= 0.05f)
+        if ( length >= SegmentLength)
         {
             direction.Normalize();
 
             // Instantiate a cylinder at the boid's previous position
 
-            GameObject newCylinder = Instantiate(cylinderPrefab, boid.PreviousPosition, Quaternion.identity);
+            GameObject newCylinder = Instantiate(branchPrefab, boid.PreviousPosition, Quaternion.identity);
             float diameter = Mathf.Lerp(MinDiameter, MaxDiameter, boid.Energy / MaxEnergy);
-            newCylinder.transform.localScale = new Vector3(diameter, length * 2f, diameter); // Scale based on length
+            newCylinder.transform.localScale = new Vector3(diameter, length * LengthMultiplier, diameter); // Scale based on length
             newCylinder.transform.LookAt(boid.Position); // Point cylinder towards boid
             newCylinder.transform.Rotate(new Vector3(90, 0, 0));
 
@@ -220,10 +240,16 @@ public class BoidSimulator : MonoBehaviour
             Destroy(cylinderObj);
         }
 
+        foreach (var leafObj in leafObjects)
+        {
+            Destroy(leafObj);
+        }
+
         // Clear the lists
         boids.Clear();
         boidObjects.Clear();
         cylinderObjects.Clear();
+        leafObjects.Clear();
 
         // Reinitialize with a new set of boids
         InitializeSimulation();

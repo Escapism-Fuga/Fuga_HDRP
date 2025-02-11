@@ -434,15 +434,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   boidPrefab: {fileID: 3417123856037110488, guid: 8670eb83e0183d047951a3b6c89e86aa,
     type: 3}
-  cylinderPrefab: {fileID: 3759959126122945436, guid: c4b58e4846574fe49b4a5b4d90cbec74,
+  branchPrefab: {fileID: 7112349861342365048, guid: 012fcefaecfe47a47a261386cd0064dd,
     type: 3}
-  SplitChance: 0.01
-  RepulsionRadius: 0.25
-  wanderStrength: 5
+  leafPrefab: {fileID: 6560721671389460868, guid: f3dc6f4f5d7e1314facb68b2c7fb68fc,
+    type: 3}
+  SplitChance: 0.001
+  RepulsionRadius: 1
+  wanderStrength: 10
   UpStrength: 0.5
   MinDiameter: 0.1
   MaxDiameter: 1
   SegmentLength: 0.05
+  LengthMultiplier: 2
+  LeafChance: 0.05
 --- !u!1 &1823688464
 GameObject:
   m_ObjectHideFlags: 0
